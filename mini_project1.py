@@ -6,7 +6,9 @@ import requests as req
 import os
 from PIL import Image
 import subprocess
-import shutil
+import io
+from google.cloud import vision
+from google.cloud.vision import types
 
 consumer_key = "dXrq8z9Ph6MZaoO4aIphPY7EA"
 consumer_secret = "QB06nE5KvYqc9gdRPDSJvsqtzCHFeaPFXL4EHp2Bzpm1C00J0U"
@@ -28,19 +30,11 @@ def download_pics(path, username, nPics):
     except FileNotFoundError:
         pass
 
-    # try:
-    #     shutil.rmtree(path)
-    # except FileNotFoundError:
-    #     pass
-
-    try:
+    if not os.path.exists(path):
         os.mkdir(path)
-    except FileExistsError:
-        pass
 
     nTweets = 200
     counter = 0
-
     while counter < nPics-1:
         tweets = twt_api.user_timeline(screen_name=username, count=nTweets)
         for i in range(nTweets):
@@ -62,25 +56,57 @@ def download_pics(path, username, nPics):
 
 def convert_pics_2_video(nPics, path):
 
-    pic_list = []
     for i in range(nPics):
         pic = Image.open(path + '/' + str("%03d" % i) + ".jpg").resize([500, 500])
         pic.save(path + '/' + str("%03d" % i) + '.jpg')
         print(i)
 
-    #strcmd = "ffmpeg -f image2 -i %*.jpg -r 5 twitter_video.mp4"
-    #subprocess.run(['ffmpeg', '-r', '1', '-i', 'twitter_pics/%03d.jpg', '-c:v', 'mpeg4', 'twitter_video.mp4'])
+    path_video = os.getcwd() + "/twitter_video.mp4"
+    if os.path.exists(path_video):
+        os.remove(path_video)
+
     subprocess.run(['ffmpeg', '-f', 'image2', '-i', 'twitter_pics/%*.jpg', '-r', '5', 'twitter_video.mp4'])
 
-    #subprocess.call(strcmd, shell = True)
+def google_vision_api(nPics):
+    client = vision.ImageAnnotatorClient()
+
+    path_result = os.getcwd() + '/picture_lables.txt'
+    if os.path.exists(path_result):
+        os.remove(path_result)
+
+    f_results = open(path_result, 'w')
+
+    for i in range(nPics):
+        file_name = os.path.join(os.path.dirname(__file__), 'twitter_pics/' + str("%03d" % i) + '.jpg')
+
+        with io.open(file_name, 'rb') as image_file:
+            content = image_file.read()
+
+        image = types.Image(content=content)
+
+
+        response = client.label_detection(image=image)
+        labels = response.label_annotations
+
+        print(i)
+
+        f_results.write('Picture '+ str(i) +'\n')
+        for label in labels:
+            f_results.write(label.description + '\n')
+        f_results.write('\n')
 
 def main():
 
     nPics = 50
     username = "@taylorswift13"
     path = os.getcwd() + '/twitter_pics'
+
     #download_pics(path, username, nPics)
-    convert_pics_2_video(nPics, path)
+
+    #convert_pics_2_video(nPics, path)
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/sean/EC601/MiniProject1/EC601HW1-1f6d3fdb0675.json"
+    google_vision_api(nPics)
 
 if __name__ == '__main__':
     main()
