@@ -18,10 +18,12 @@ access_secret = "jyYdMngKjFrM8yeJs8HzkIjsPHntwTlQPTB2EpR67fJFk"
 
 def download_pics(path, username, nPics):
 
+    # Get authorization of twitter pi
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_key, access_secret)
     twt_api = tweepy.API(auth)
 
+    # Delete images from the last download
     try:
         for root, dirs, files in os.walk(path):
             for name in files:
@@ -30,24 +32,33 @@ def download_pics(path, username, nPics):
     except FileNotFoundError:
         pass
 
+    # Create the directory for images
     if not os.path.exists(path):
         os.mkdir(path)
 
-    nTweets = 200
+    nTweets = 200 # Download 200 tweets as a batch every time
     counter = 0
+
+    # Keep downloading images until the required number of images is met
     while counter < nPics-1:
         tweets = twt_api.user_timeline(screen_name=username, count=nTweets)
+
+        # Search and save the images from the 200 tweets
         for i in range(nTweets):
             try:
                 media_contents = tweets[i].entities["media"]
                 for content in media_contents:
                     if content["media_url"][-3:] in ["jpg", "png", "bmp"]:
+
+                        # Download the image
                         pic_url = content["media_url"]
                         pic = req.get(pic_url).content
 
+                        # Save the image
                         open(path + '/' + str("%03d" % counter) + '.jpg', 'wb').write(pic)
                         print(counter)
                         counter = counter+1
+
             except KeyError:
                 pass
             if counter > nPics-1:
@@ -56,6 +67,7 @@ def download_pics(path, username, nPics):
 
 def convert_pics_2_video(nPics, path):
 
+    # Resize the images
     for i in range(nPics):
         pic = Image.open(path + '/' + str("%03d" % i) + ".jpg").resize([500, 500])
         pic.save(path + '/' + str("%03d" % i) + '.jpg')
@@ -65,31 +77,34 @@ def convert_pics_2_video(nPics, path):
     if os.path.exists(path_video):
         os.remove(path_video)
 
+    # Implement FFMPEG
     subprocess.run(['ffmpeg', '-f', 'image2', '-i', 'twitter_pics/%*.jpg', '-r', '5', 'twitter_video.mp4'])
 
 def google_vision_api(nPics):
+
     client = vision.ImageAnnotatorClient()
 
+    # Delete the result from last time
     path_result = os.getcwd() + '/picture_lables.txt'
     if os.path.exists(path_result):
         os.remove(path_result)
 
     f_results = open(path_result, 'w')
 
+    # Generate labels for each image with google could vision api
     for i in range(nPics):
-        file_name = os.path.join(os.path.dirname(__file__), 'twitter_pics/' + str("%03d" % i) + '.jpg')
 
+        file_name = os.path.join(os.path.dirname(__file__), 'twitter_pics/' + str("%03d" % i) + '.jpg')
         with io.open(file_name, 'rb') as image_file:
             content = image_file.read()
 
+        # Implement google cloud vision api
         image = types.Image(content=content)
-
-
         response = client.label_detection(image=image)
         labels = response.label_annotations
-
         print(i)
 
+        # Save the result to a file
         f_results.write('Picture '+ str(i) +'\n')
         for label in labels:
             f_results.write(label.description + '\n')
@@ -98,13 +113,13 @@ def google_vision_api(nPics):
 def main():
 
     nPics = 50
-    username = "@taylorswift13"
+    twitter_username = "@taylorswift13"
     path = os.getcwd() + '/twitter_pics'
 
-    #download_pics(path, username, nPics)
+    download_pics(path, twitter_username, nPics)
+    convert_pics_2_video(nPics, path)
 
-    #convert_pics_2_video(nPics, path)
-
+    # Set the environment for google cloud vision api
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/sean/EC601/MiniProject1/EC601HW1-1f6d3fdb0675.json"
     google_vision_api(nPics)
 
