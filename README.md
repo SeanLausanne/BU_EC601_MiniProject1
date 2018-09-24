@@ -6,3 +6,5 @@ The project contains 3 major parts:<br>
   Downloading images with Twitter API<br>
   Convert to the images to a video with FFMPEG<br>
   Analyze the images with Google Could Vision API<br> 
+
+The file is written in Python 3.5. Before running, please make sure that you have installed these libraries: tweepy, PIL, google-cloud-vision.<br>
