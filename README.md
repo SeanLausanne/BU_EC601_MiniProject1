@@ -13,4 +13,6 @@ The function "download_pics" downloads a required number of images from a twitte
 
 The function "convert_pics_2_video" turns all the images to a mp4 video saved at the same directory.<br>
 
-The function "google_vision_api" uses Google Cloud Vision APi to analyze all the images. The API gives several labels to each picture. The results are saved in picture_labels.txt
+The function "google_vision_api" uses Google Cloud Vision APi to analyze all the images. The API gives several labels to each picture. The results are saved in picture_labels.txt.<br>
+
+If you have any question, feel free to contact me at xsling@bu.edu
