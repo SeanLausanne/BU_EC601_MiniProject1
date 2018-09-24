@@ -11,7 +11,7 @@ The file is written in Python 3.5. Before running, please make sure that you hav
 
 The function "download_pics" downloads a required number of images from a twitter account(Taylor Swift, in this case). Then the images are saved to a local directory "twitter_pics".<br>
 
-The function "convert_pics_2_video" turns all the images to a mp4 video saved at the same directory.<br>
+The function "convert_pics_2_video" turns all the images to a mp4 video saved at the same directory. The FFMPEG command is for Linux environment.<br>
 
 The function "google_vision_api" uses Google Cloud Vision APi to analyze all the images. The API gives several labels to each picture. The results are saved in picture_labels.txt.<br>
 
