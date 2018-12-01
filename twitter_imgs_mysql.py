@@ -33,7 +33,7 @@ def add_account(cursor):
     image_process.convert_pics_2_video(nPics, path)
 
     print("Analyzing the images")
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/sean/Documents/EC601/MiniProject1/EC601HW1-1f6d3fdb0675.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home//home/you_credentials_file"
     all_labels = image_process.google_vision_api(nPics)
 
     sql = "INSERT INTO user_record (username, nImgs, labels) VALUES (%s, %s, %s)"
